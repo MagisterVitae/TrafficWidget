@@ -107,6 +107,23 @@ public class TrafficWidget extends AppWidgetProvider {
         Toast.makeText(context, "onDisabled()", Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(TrafficWidget.ACTION_WIDGET_REFRESH)) {
+            manUpdateWidget(context);
+        }
+    }
+
+    private void manUpdateWidget(Context context) {
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
+        //remoteViews.setImageViewResource(R.id.widget_image, getImageToSet());
+
+        //REMEMBER TO ALWAYS REFRESH YOUR BUTTON CLICK LISTENERS!!!
+        remoteViews.setOnClickPendingIntent(R.id.btnRefresh, TrafficWidget.buildRefreshPendingIntent(context));
+
+        TrafficWidget.pushWidgetUpdate(context.getApplicationContext(), remoteViews);
+    }
+
     public static PendingIntent buildRefreshPendingIntent(Context context) {
         Intent intent = new Intent();
         intent.setAction(ACTION_WIDGET_REFRESH);
