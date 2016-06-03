@@ -3,19 +3,52 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:weightSum="1">
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/configure" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/configure"
+        android:id="@+id/lblTitle"
+        android:layout_weight="0.85" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/txtSeparator"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.85" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="From:"
+        android:id="@+id/lblFrom" />
 
     <EditText
-        android:id="@+id/appwidget_text"
+        android:id="@+id/txtFrom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="To:"
+        android:id="@+id/lblTo"
+        android:layout_weight="0.85" />
+
+    <EditText
+        android:id="@+id/txtTo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:layout_gravity="center_horizontal" />
 
     <Button
         android:id="@+id/add_button"
