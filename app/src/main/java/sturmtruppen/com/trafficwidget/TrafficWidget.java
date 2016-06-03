@@ -28,14 +28,6 @@ public class TrafficWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
-       /* CharSequence widgetText = TrafficWidgetConfigureActivity.loadTitlePref(context, appWidgetId);
-        // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
-        views.setTextViewText(R.id.appwidget_text, widgetText);
-
-        // Instruct the widget manager to update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views);*/
-
         CharSequence confFrom = TrafficWidgetConfigureActivity.loadFromPref(context, appWidgetId);
         CharSequence confTo = TrafficWidgetConfigureActivity.loadToPref(context, appWidgetId);
         from = confFrom.toString();
@@ -45,7 +37,12 @@ public class TrafficWidget extends AppWidgetProvider {
         String strWidgetText = currentTime;
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
-        views.setTextViewText(R.id.widgettext, "[" + String.valueOf(appWidgetId) + "]" + strWidgetText);
+        views.setTextViewText(R.id.widgettext, strWidgetText);
+
+        // Aggiornamento widget mediante task
+        TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
+        String[] destinations = {from, to};
+        dataFetcher.execute(destinations);
 
         // Sets up the settings button to open the configuration activity
         Intent configIntent = new Intent(context, TrafficWidgetConfigureActivity.class);
@@ -64,7 +61,6 @@ public class TrafficWidget extends AppWidgetProvider {
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        //Toast.makeText(context, "updateAppWidget(): " + String.valueOf(appWidgetId) + "\n" + strWidgetText, Toast.LENGTH_LONG).show();
         Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
 
     }
@@ -88,19 +84,16 @@ public class TrafficWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             TrafficWidgetConfigureActivity.deleteTitlePref(context, appWidgetId);
         }
-        Toast.makeText(context, "onDeleted()", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onEnabled(Context context) {
         // Enter relevant functionality for when the first widget is created
-        Toast.makeText(context, "onEnabled()", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
-        Toast.makeText(context, "onDisabled()", Toast.LENGTH_LONG).show();
     }
 
     @Override

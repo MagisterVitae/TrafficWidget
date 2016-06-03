@@ -27,7 +27,7 @@ import java.util.StringTokenizer;
 public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryResponse> {
 
     private Context contest;
-    public static SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
     private static String apiKey = "AIzaSyAmp0DJnQmf09u0G2Z4UtbArFIPhu_dLOA";
 
     // Costruttore per test con time stamp
@@ -56,6 +56,12 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
         manUpdateWidget(this.contest, response);
     }
 
+    /**
+     * [TEST] Metodo per la formattazione dei dati da visualizzare sul widget
+     *
+     * @param context
+     * @param newTimeStamp
+     */
     private void manUpdateWidget(Context context, String newTimeStamp) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
         views.setTextViewText(R.id.widgettext, newTimeStamp);
@@ -65,6 +71,11 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
         pushWidgetUpdate(context.getApplicationContext(), views);
     }
 
+    /**
+     * Metodo per la formattazione dei dati da visualizzare sul widget
+     * @param context
+     * @param response
+     */
     private void manUpdateWidget(Context context, TrafficQueryResponse response) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
 
@@ -89,6 +100,12 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
         manager.updateAppWidget(myWidget, remoteViews);
     }
 
+    /**
+     * Metodo che interroga le API Google per stabilire il tempo di percorrenza
+     * @param src
+     * @param dest
+     * @return
+     */
     private TrafficQueryResponse GetDistance(String src, String dest) {
 
         TrafficQueryResponse queryResponse = new TrafficQueryResponse();

@@ -22,10 +22,6 @@
                 android:resource="@xml/traffic_widget_info" />
         </receiver>
 
-        <service
-            android:enabled="true"
-            android:name=".FetchDataService" />
-
         <activity android:name=".TrafficWidgetConfigureActivity">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />

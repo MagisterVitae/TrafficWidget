@@ -18,8 +18,7 @@ public class TrafficWidgetConfigureActivity extends Activity {
     private static final String PREFS_NAME = "sturmtruppen.com.trafficwidget.TrafficWidget";
     private static final String PREF_PREFIX_KEY = "TW_";
     int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    //EditText mAppWidgetText;
-    //--
+
     EditText mFrom;
     EditText mTo;
 
@@ -28,9 +27,6 @@ public class TrafficWidgetConfigureActivity extends Activity {
             final Context context = TrafficWidgetConfigureActivity.this;
 
             // When the button is clicked, store the string locally
-            //String widgetText = mAppWidgetText.getText().toString();
-            //saveTitlePref(context, mAppWidgetId, widgetText);
-            //--
             String from = mFrom.getText().toString();
             String to = mTo.getText().toString();
             saveDestinationPref(context, mAppWidgetId, from, to);
@@ -52,13 +48,14 @@ public class TrafficWidgetConfigureActivity extends Activity {
         super();
     }
 
-    // Write the prefix to the SharedPreferences object for this widget
-    static void saveTitlePref(Context context, int appWidgetId, String text) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putString(PREF_PREFIX_KEY + appWidgetId, text);
-        prefs.apply();
-    }
-
+    /**
+     * Metodo per salvare le destinazioni nelle SharedPreference
+     *
+     * @param context
+     * @param appWidgetId
+     * @param from
+     * @param to
+     */
     static void saveDestinationPref(Context context, int appWidgetId, String from, String to) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putString(PREF_PREFIX_KEY + "from", from);
@@ -66,18 +63,12 @@ public class TrafficWidgetConfigureActivity extends Activity {
         prefs.apply();
     }
 
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    static String loadTitlePref(Context context, int appWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        String titleValue = prefs.getString(PREF_PREFIX_KEY + appWidgetId, null);
-        if (titleValue != null) {
-            return titleValue;
-        } else {
-            return context.getString(R.string.appwidget_text);
-        }
-    }
-
+    /**
+     * Metodo per caricare la località di partenza dalle SharedPreference
+     * @param context
+     * @param appWidgetId
+     * @return
+     */
     static String loadFromPref(Context context, int appWidgetId) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         String fromValue = prefs.getString(PREF_PREFIX_KEY + "from", null);
@@ -88,6 +79,12 @@ public class TrafficWidgetConfigureActivity extends Activity {
         }
     }
 
+    /**
+     * Metodo per caricare la località di arrivo dalle SharedPreference
+     * @param context
+     * @param appWidgetId
+     * @return
+     */
     static String loadToPref(Context context, int appWidgetId) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         String toValue = prefs.getString(PREF_PREFIX_KEY + "to", null);
