@@ -136,7 +136,7 @@ public class TrafficWidgetConfigureActivity extends Activity {
         //mAppWidgetText.setText(loadTitlePref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
         //--
         mFrom.setText(loadFromPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
-        mTo.setText(loadFromPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
+        mTo.setText(loadToPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
     }
 }
 
