@@ -20,7 +20,7 @@ public class TrafficWidget extends AppWidgetProvider {
 
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
     public static String ACTION_WIDGET_REFRESH = "sturmtruppen.com.trafficwidget.MANUAL_REFRESH";
-    public static SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 
     private static String from;
     private static String to;

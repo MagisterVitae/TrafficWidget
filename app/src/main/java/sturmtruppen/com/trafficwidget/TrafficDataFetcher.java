@@ -67,7 +67,10 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
 
     private void manUpdateWidget(Context context, TrafficQueryResponse response) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
-        views.setTextViewText(R.id.widgettext, response.executionTimeStamp.toString());
+
+        String timeStamp = formatter.format(response.executionTimeStamp);
+
+        views.setTextViewText(R.id.widgettext, timeStamp + "\n" + response.FormattedDuration());
         //REMEMBER TO ALWAYS REFRESH YOUR BUTTON CLICK LISTENERS!!!
         views.setOnClickPendingIntent(R.id.btnRefresh, TrafficWidget.buildRefreshPendingIntent(context));
 
@@ -91,9 +94,9 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
         TrafficQueryResponse queryResponse = new TrafficQueryResponse();
 
         StringBuilder urlString = new StringBuilder();
-        urlString.append("http://maps.googleapis.com/maps/api/distancematrix/json?");
-        urlString.append("origin=" + src );//Origine
-        urlString.append("&destination=" + dest );//Destinazione
+        urlString.append("https://maps.googleapis.com/maps/api/distancematrix/json?");
+        urlString.append("origins=" + src );//Origine
+        urlString.append("&destinations=" + dest );//Destinazione
         urlString.append("&departure_time=now");//Partenza immediata
         urlString.append("&key=");
         urlString.append(apiKey);
@@ -140,10 +143,10 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
             JSONObject firstElement = elements.getJSONObject(0);
             //Log.d("JSON","legs: "+legs.toString());
 
-            JSONObject duration = firstElement.getJSONObject("duration");
+            JSONObject duration = firstElement.getJSONObject("duration_in_traffic");
             //Log.d("JSON","steps: "+steps.toString());
 
-            queryResponse.totalMinutes = duration.getInt("value")/60;
+            queryResponse.totalSeconds = duration.getInt("value");
             queryResponse.executionTimeStamp = new Date();
 
         } catch (Exception e) {
