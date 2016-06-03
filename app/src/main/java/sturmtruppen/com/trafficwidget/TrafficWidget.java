@@ -22,6 +22,9 @@ public class TrafficWidget extends AppWidgetProvider {
     public static String ACTION_WIDGET_REFRESH = "sturmtruppen.com.trafficwidget.MANUAL_REFRESH";
     public static SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss");
 
+    private static String from;
+    private static String to;
+
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
@@ -33,6 +36,10 @@ public class TrafficWidget extends AppWidgetProvider {
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);*/
 
+        CharSequence confFrom = TrafficWidgetConfigureActivity.loadFromPref(context, appWidgetId);
+        CharSequence confTo = TrafficWidgetConfigureActivity.loadToPref(context, appWidgetId);
+        from = confFrom.toString();
+        to = confTo.toString();
 
         String currentTime = formatter.format(new Date());
         String strWidgetText = currentTime;
@@ -57,7 +64,8 @@ public class TrafficWidget extends AppWidgetProvider {
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        Toast.makeText(context, "updateAppWidget(): " + String.valueOf(appWidgetId) + "\n" + strWidgetText, Toast.LENGTH_LONG).show();
+        //Toast.makeText(context, "updateAppWidget(): " + String.valueOf(appWidgetId) + "\n" + strWidgetText, Toast.LENGTH_LONG).show();
+        Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
 
     }
 
@@ -104,6 +112,8 @@ public class TrafficWidget extends AppWidgetProvider {
             // Aggiornamento widget mediante task
             TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
             dataFetcher.execute();
+
+            Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
         }
     }
 
