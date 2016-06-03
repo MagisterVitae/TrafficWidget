@@ -99,22 +99,14 @@ public class TrafficWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (intent.getAction().equals(TrafficWidget.ACTION_WIDGET_REFRESH)) {
-            manUpdateWidget(context);
+            //manUpdateWidget(context);
+
+            // Aggiornamento widget mediante task
+            TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
+            dataFetcher.execute();
         }
     }
 
-    private void manUpdateWidget(Context context) {
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
-        //remoteViews.setImageViewResource(R.id.widget_image, getImageToSet());
-
-        String currentTime = formatter.format(new Date());
-        String strWidgetText = currentTime;
-        views.setTextViewText(R.id.widgettext, strWidgetText);
-        //REMEMBER TO ALWAYS REFRESH YOUR BUTTON CLICK LISTENERS!!!
-        views.setOnClickPendingIntent(R.id.btnRefresh, TrafficWidget.buildRefreshPendingIntent(context));
-
-        TrafficWidget.pushWidgetUpdate(context.getApplicationContext(), views);
-    }
 
     /**
      * Metodo per costruire un pending intent per il refresh manuale del widget
@@ -126,17 +118,6 @@ public class TrafficWidget extends AppWidgetProvider {
         Intent intent = new Intent();
         intent.setAction(ACTION_WIDGET_REFRESH);
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    /**
-     * Metodo che aggiorna la view del widget
-     * @param context
-     * @param remoteViews
-     */
-    public static void pushWidgetUpdate(Context context, RemoteViews remoteViews) {
-        ComponentName myWidget = new ComponentName(context, TrafficWidget.class);
-        AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        manager.updateAppWidget(myWidget, remoteViews);
     }
 
 

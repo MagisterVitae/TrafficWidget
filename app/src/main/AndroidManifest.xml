@@ -15,12 +15,14 @@
             <intent-filter>
                 <action android:name="sturmtruppen.com.trafficwidget.MANUAL_REFRESH" />
             </intent-filter>
-
-
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/traffic_widget_info" />
         </receiver>
+
+        <service
+            android:enabled="true"
+            android:name=".FetchDataService" />
 
         <activity android:name=".TrafficWidgetConfigureActivity">
             <intent-filter>
