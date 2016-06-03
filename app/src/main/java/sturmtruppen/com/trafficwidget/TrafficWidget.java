@@ -111,7 +111,8 @@ public class TrafficWidget extends AppWidgetProvider {
 
             // Aggiornamento widget mediante task
             TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-            dataFetcher.execute();
+            String[] destinations = {from, to};
+            dataFetcher.execute(destinations);
 
             Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
         }

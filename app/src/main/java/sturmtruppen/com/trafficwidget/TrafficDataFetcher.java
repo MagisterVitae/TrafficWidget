@@ -24,10 +24,11 @@ import java.util.StringTokenizer;
 /**
  * Created by Matteo on 03/06/2016.
  */
-public class TrafficDataFetcher extends AsyncTask<Void, Void, TrafficQueryResponse> {
+public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryResponse> {
 
     private Context contest;
     public static SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss");
+    private static String apiKey = "AIzaSyAmp0DJnQmf09u0G2Z4UtbArFIPhu_dLOA";
 
     // Costruttore per test con time stamp
     public TrafficDataFetcher(Context context) {
@@ -41,9 +42,8 @@ public class TrafficDataFetcher extends AsyncTask<Void, Void, TrafficQueryRespon
      * @return
      */
     @Override
-    protected TrafficQueryResponse doInBackground(Void... params) {
-
-        return GetDistance("","");
+    protected TrafficQueryResponse doInBackground(String[]... params) {
+        return GetDistance(params[0][0], params[0][1]);
     }
 
     /**
@@ -96,6 +96,7 @@ public class TrafficDataFetcher extends AsyncTask<Void, Void, TrafficQueryRespon
         urlString.append("&destination=" + dest );//Destinazione
         urlString.append("&departure_time=now");//Partenza immediata
         urlString.append("&key=");
+        urlString.append(apiKey);
         Log.d("xxx", "URL=" + urlString.toString());
 
         // get the JSON And parse it to get the directions data.
