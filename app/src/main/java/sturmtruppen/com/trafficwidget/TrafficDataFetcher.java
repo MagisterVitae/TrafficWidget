@@ -1,11 +1,19 @@
 package sturmtruppen.com.trafficwidget;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,24 +23,25 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.StringTokenizer;
 
 /**
  * Created by Matteo on 03/06/2016.
  */
 public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryResponse> {
 
-    private Context contest;
+    private Context context;
     public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-    private static String apiKey = "AIzaSyAmp0DJnQmf09u0G2Z4UtbArFIPhu_dLOA";
+    private static String APIKEY = "AIzaSyAmp0DJnQmf09u0G2Z4UtbArFIPhu_dLOA";
+    private static int GREEN = Color.GREEN;
+    private static int YELLOW = Color.YELLOW;
+    private static int RED = Color.RED;
 
     // Costruttore per test con time stamp
     public TrafficDataFetcher(Context context) {
-        this.contest = context;
+        this.context = context;
     }
 
     /**
@@ -43,7 +52,7 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
      */
     @Override
     protected TrafficQueryResponse doInBackground(String[]... params) {
-        return GetDistance(params[0][0], params[0][1]);
+        return GetDistance(params[0][0], params[0][1], params[0][2], params[0][3]);
     }
 
     /**
@@ -53,7 +62,7 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
      */
     @Override
     protected void onPostExecute(TrafficQueryResponse response) {
-        manUpdateWidget(this.contest, response);
+        manUpdateWidget(this.context, response);
     }
 
     /**
@@ -79,9 +88,16 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
     private void manUpdateWidget(Context context, TrafficQueryResponse response) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
 
-        String timeStamp = formatter.format(response.executionTimeStamp);
+        views.setTextViewText(R.id.widgettext, response.FormattedDuration());
+        views.setInt(R.id.btnRefresh, "setBackgroundColor", response.btnColor);
+        if (response.btnColor == RED)
+            sendNotification(context);
 
-        views.setTextViewText(R.id.widgettext, timeStamp + "\n" + response.FormattedDuration());
+        if (response.successful)
+            Toast.makeText(context, "ETA: " + response.FormattedDuration(), Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(context, "Data retrieval failure!", Toast.LENGTH_LONG).show();
+
         //REMEMBER TO ALWAYS REFRESH YOUR BUTTON CLICK LISTENERS!!!
         views.setOnClickPendingIntent(R.id.btnRefresh, TrafficWidget.buildRefreshPendingIntent(context));
 
@@ -106,25 +122,23 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
      * @param dest
      * @return
      */
-    private TrafficQueryResponse GetDistance(String src, String dest) {
+    private TrafficQueryResponse GetDistance(String src, String dest, String warningTsd, String alertTsd) {
 
         TrafficQueryResponse queryResponse = new TrafficQueryResponse();
 
-        StringBuilder urlString = new StringBuilder();
-        urlString.append("https://maps.googleapis.com/maps/api/distancematrix/json?");
-        urlString.append("origins=" + src );//Origine
-        urlString.append("&destinations=" + dest );//Destinazione
-        urlString.append("&departure_time=now");//Partenza immediata
-        urlString.append("&key=");
-        urlString.append(apiKey);
-        Log.d("xxx", "URL=" + urlString.toString());
+        String urlString = Uri.parse("https://maps.googleapis.com/maps/api/distancematrix/json?").buildUpon()
+                .appendQueryParameter("origins", src)
+                .appendQueryParameter("destinations", dest)
+                .appendQueryParameter("departure_time", "now")
+                .appendQueryParameter("key", APIKEY)
+                .build().toString();
 
         // get the JSON And parse it to get the directions data.
         HttpURLConnection urlConnection = null;
         URL url = null;
 
         try {
-            url = new URL(urlString.toString());
+            url = new URL(urlString);
 
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -157,7 +171,17 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
             JSONArray elements = firstRow.getJSONArray("elements");
             //Log.d("JSON","summary: "+summary);
 
-            JSONObject firstElement = elements.getJSONObject(0);
+            //Seleziona tragitto più breve
+            int elementIndex = 0;
+            int distance = Integer.MAX_VALUE;
+            for (int i = 0; i < elements.length(); i++) {
+                if (elements.getJSONObject(elementIndex).getJSONObject("distance").getInt("value") < distance) {
+                    distance = elements.getJSONObject(elementIndex).getJSONObject("distance").getInt("value");
+                    elementIndex = i;
+                }
+            }
+
+            JSONObject firstElement = elements.getJSONObject(elementIndex);
             //Log.d("JSON","legs: "+legs.toString());
 
             JSONObject duration = firstElement.getJSONObject("duration_in_traffic");
@@ -165,6 +189,8 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
 
             queryResponse.totalSeconds = duration.getInt("value");
             queryResponse.executionTimeStamp = new Date();
+            queryResponse.successful = true;
+            queryResponse.btnColor = getBtnColor(duration.getInt("value"), warningTsd, alertTsd);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,4 +199,39 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
         return queryResponse;
     }
 
+    /**
+     * Metodo per la determinazione del colore del widget
+     *
+     * @param duration
+     * @param warningTsd
+     * @param alertTsd
+     * @return
+     */
+    private int getBtnColor(int duration, String warningTsd, String alertTsd) {
+        int warningSecTsd = Integer.parseInt(warningTsd) * 60;
+        int alertSecTsd = Integer.parseInt(alertTsd) * 60;
+
+        if (duration >= alertSecTsd)
+            return RED;
+        if (duration >= warningSecTsd)
+            return YELLOW;
+        else
+            return GREEN;
+    }
+
+    private void sendNotification(Context context) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.ic_madonna)
+                        .setContentTitle("Traffic Widget")
+                        .setContentText("ETA above alert threshold!!!");
+
+        // Sets an ID for the notification
+        int mNotificationId = 001;
+        // Gets an instance of the NotificationManager service
+        NotificationManager mNotifyMgr =
+                (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
+        // Builds the notification and issues it.
+        mNotifyMgr.notify(mNotificationId, mBuilder.build());
+    }
 }

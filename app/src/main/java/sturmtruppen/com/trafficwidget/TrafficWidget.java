@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -20,29 +22,32 @@ public class TrafficWidget extends AppWidgetProvider {
 
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
     public static String ACTION_WIDGET_REFRESH = "sturmtruppen.com.trafficwidget.MANUAL_REFRESH";
-    public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+    //public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
 
     private static String from;
     private static String to;
+    private static String warningTsd;
+    private static String alertTsd;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
+
+        // Caricamento configurazioni
         CharSequence confFrom = TrafficWidgetConfigureActivity.loadFromPref(context, appWidgetId);
         CharSequence confTo = TrafficWidgetConfigureActivity.loadToPref(context, appWidgetId);
+        CharSequence confWarningTsd = TrafficWidgetConfigureActivity.loadWarningPref(context, appWidgetId);
+        CharSequence confAlertTsd = TrafficWidgetConfigureActivity.loadAlertPref(context, appWidgetId);
         from = confFrom.toString();
         to = confTo.toString();
-
-        String currentTime = formatter.format(new Date());
-        String strWidgetText = currentTime;
-
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
-        views.setTextViewText(R.id.widgettext, strWidgetText);
+        warningTsd = confWarningTsd.toString();
+        alertTsd = confAlertTsd.toString();
 
         // Aggiornamento widget mediante task
         TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-        String[] destinations = {from, to};
-        dataFetcher.execute(destinations);
+        String[] params = {from, to, warningTsd, alertTsd};
+        dataFetcher.execute(params);
 
         // Sets up the settings button to open the configuration activity
         Intent configIntent = new Intent(context, TrafficWidgetConfigureActivity.class);
@@ -58,10 +63,9 @@ public class TrafficWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.btnRefresh, refreshPendingIntent);
         refreshIntent.setAction(ACTION_WIDGET_REFRESH);
 
-
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
+        // Toast.makeText(context, "ETA: ", Toast.LENGTH_LONG).show();
 
     }
 
@@ -98,16 +102,16 @@ public class TrafficWidget extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
         if (intent.getAction().equals(TrafficWidget.ACTION_WIDGET_REFRESH)) {
-            //manUpdateWidget(context);
+            if (isNetworkOnline(context)) {
+                // Aggiornamento widget mediante task
+                TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
+                String[] params = {from, to, warningTsd, alertTsd};
+                dataFetcher.execute(params);
 
-            // Aggiornamento widget mediante task
-            TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-            String[] destinations = {from, to};
-            dataFetcher.execute(destinations);
-
-            Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
+                //Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
+            } else
+                Toast.makeText(context, "Network unavailable!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -122,6 +126,19 @@ public class TrafficWidget extends AppWidgetProvider {
         Intent intent = new Intent();
         intent.setAction(ACTION_WIDGET_REFRESH);
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private boolean isNetworkOnline(Context context) {
+        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            NetworkInfo[] info = connectivity.getAllNetworkInfo();
+            if (info != null)
+                for (int i = 0; i < info.length; i++)
+                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                        return true;
+                    }
+        }
+        return false;
     }
 
 

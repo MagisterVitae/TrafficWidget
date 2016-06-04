@@ -21,6 +21,8 @@ public class TrafficWidgetConfigureActivity extends Activity {
 
     EditText mFrom;
     EditText mTo;
+    EditText mWarning;
+    EditText mAlert;
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
@@ -29,7 +31,10 @@ public class TrafficWidgetConfigureActivity extends Activity {
             // When the button is clicked, store the string locally
             String from = mFrom.getText().toString();
             String to = mTo.getText().toString();
+            String warningTsd = mWarning.getText().toString();
+            String alertTsd = mAlert.getText().toString();
             saveDestinationPref(context, mAppWidgetId, from, to);
+            saveThresholdPref(context, mAppWidgetId, warningTsd, alertTsd);
 
             // It is the responsibility of the configuration activity to update the app widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -60,6 +65,20 @@ public class TrafficWidgetConfigureActivity extends Activity {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putString(PREF_PREFIX_KEY + "from", from);
         prefs.putString(PREF_PREFIX_KEY + "to", to);
+        prefs.apply();
+    }
+
+    /**
+     * Metodo per salvare le soglie utilizzate per stabilire il colore del widget
+     * @param context
+     * @param appWidgetId
+     * @param warning
+     * @param alert
+     */
+    static void saveThresholdPref(Context context, int appWidgetId, String warning, String alert) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.putString(PREF_PREFIX_KEY + "warning", warning);
+        prefs.putString(PREF_PREFIX_KEY + "alert", alert);
         prefs.apply();
     }
 
@@ -95,6 +114,40 @@ public class TrafficWidgetConfigureActivity extends Activity {
         }
     }
 
+    /**
+     * Metodo per caricare il valore della soglia di warning
+     *
+     * @param context
+     * @param appWidgetId
+     * @return
+     */
+    static String loadWarningPref(Context context, int appWidgetId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+        String toValue = prefs.getString(PREF_PREFIX_KEY + "warning", null);
+        if (toValue != null) {
+            return toValue;
+        } else {
+            return "999";
+        }
+    }
+
+    /**
+     * Metodo per caricare il valore della soglia di alert
+     *
+     * @param context
+     * @param appWidgetId
+     * @return
+     */
+    static String loadAlertPref(Context context, int appWidgetId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+        String toValue = prefs.getString(PREF_PREFIX_KEY + "alert", null);
+        if (toValue != null) {
+            return toValue;
+        } else {
+            return "999";
+        }
+    }
+
     static void deleteTitlePref(Context context, int appWidgetId) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.remove(PREF_PREFIX_KEY + appWidgetId);
@@ -114,6 +167,8 @@ public class TrafficWidgetConfigureActivity extends Activity {
         //--
         mFrom = (EditText) findViewById(R.id.txtFrom);
         mTo = (EditText) findViewById(R.id.txtTo);
+        mWarning = (EditText) findViewById(R.id.txtWarning);
+        mAlert = (EditText) findViewById(R.id.txtAlert);
         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
 
         // Find the widget id from the intent.
@@ -134,6 +189,8 @@ public class TrafficWidgetConfigureActivity extends Activity {
         //--
         mFrom.setText(loadFromPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
         mTo.setText(loadToPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
+        mWarning.setText(loadWarningPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
+        mAlert.setText(loadAlertPref(TrafficWidgetConfigureActivity.this, mAppWidgetId));
     }
 }
 

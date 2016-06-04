@@ -3,20 +3,6 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <TextView
-        android:id="@+id/widgettext"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textColor="#000000" />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btnConfig"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:src="@color/accent_material_light" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -25,8 +11,30 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:src="@color/colorAccent" />
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true" />
+    <TextView
+        android:id="@+id/widgettext"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:translationZ="1dp"
+        android:singleLine="true"
+        android:textSize="@dimen/abc_text_size_headline_material"
+        android:textStyle="bold"
+        android:layout_centerInParent="true"
+        android:textAlignment="center" />
 
+    <ImageButton
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:id="@+id/btnConfig"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="false"
+        android:src="@drawable/ic_settings"
+        android:translationZ="1dp" />
 </RelativeLayout>
 
     <!--

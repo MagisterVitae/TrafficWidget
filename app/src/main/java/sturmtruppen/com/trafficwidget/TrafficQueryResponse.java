@@ -1,5 +1,7 @@
 package sturmtruppen.com.trafficwidget;
 
+import android.graphics.Color;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +16,7 @@ public class TrafficQueryResponse {
     public boolean successful;
     public int totalSeconds;
     public Date executionTimeStamp;
+    public int btnColor;
 
     TrafficQueryResponse() {
         successful = false;
