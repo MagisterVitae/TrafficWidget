@@ -94,9 +94,9 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
             sendNotification(context);
 
         if (response.successful)
-            Toast.makeText(context, "ETA: " + response.FormattedDuration(), Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "ETA: " + response.FormattedDuration(), Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(context, "Data retrieval failure!", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Data retrieval failure!", Toast.LENGTH_SHORT).show();
 
         //REMEMBER TO ALWAYS REFRESH YOUR BUTTON CLICK LISTENERS!!!
         views.setOnClickPendingIntent(R.id.btnRefresh, TrafficWidget.buildRefreshPendingIntent(context));

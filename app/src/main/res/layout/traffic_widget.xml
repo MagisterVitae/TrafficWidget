@@ -27,14 +27,15 @@
         android:textAlignment="center" />
 
     <ImageButton
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:id="@+id/btnConfig"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="false"
         android:src="@drawable/ic_settings"
-        android:translationZ="1dp" />
+        android:translationZ="1dp"
+        android:background="@null" />
 </RelativeLayout>
 
     <!--

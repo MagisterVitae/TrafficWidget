@@ -11,9 +11,6 @@ import android.net.NetworkInfo;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 /**
  * Implementation of App Widget functionality.
  * App Widget Configuration implemented in {@link TrafficWidgetConfigureActivity TrafficWidgetConfigureActivity}
@@ -22,12 +19,6 @@ public class TrafficWidget extends AppWidgetProvider {
 
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
     public static String ACTION_WIDGET_REFRESH = "sturmtruppen.com.trafficwidget.MANUAL_REFRESH";
-    //public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-
-    private static String from;
-    private static String to;
-    private static String warningTsd;
-    private static String alertTsd;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -35,18 +26,11 @@ public class TrafficWidget extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
 
         // Caricamento configurazioni
-        CharSequence confFrom = TrafficWidgetConfigureActivity.loadFromPref(context, appWidgetId);
-        CharSequence confTo = TrafficWidgetConfigureActivity.loadToPref(context, appWidgetId);
-        CharSequence confWarningTsd = TrafficWidgetConfigureActivity.loadWarningPref(context, appWidgetId);
-        CharSequence confAlertTsd = TrafficWidgetConfigureActivity.loadAlertPref(context, appWidgetId);
-        from = confFrom.toString();
-        to = confTo.toString();
-        warningTsd = confWarningTsd.toString();
-        alertTsd = confAlertTsd.toString();
+        Configuration conf = new Configuration(context, appWidgetId);
 
         // Aggiornamento widget mediante task
         TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-        String[] params = {from, to, warningTsd, alertTsd};
+        String[] params = {conf.getFrom(), conf.getTo(), conf.getWarningTsd(), conf.getAlertTsd()};
         dataFetcher.execute(params);
 
         // Sets up the settings button to open the configuration activity
@@ -64,9 +48,6 @@ public class TrafficWidget extends AppWidgetProvider {
         refreshIntent.setAction(ACTION_WIDGET_REFRESH);
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
-
-        // Toast.makeText(context, "ETA: ", Toast.LENGTH_LONG).show();
-
     }
 
     @Override
@@ -77,7 +58,6 @@ public class TrafficWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
 
             updateAppWidget(context, appWidgetManager, appWidgetId);
-            Toast.makeText(context, "onUpdate(): " + String.valueOf(i) + " : " + String.valueOf(appWidgetId), Toast.LENGTH_LONG).show();
             i++;
         }
     }
@@ -102,14 +82,21 @@ public class TrafficWidget extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+
         if (intent.getAction().equals(TrafficWidget.ACTION_WIDGET_REFRESH)) {
             if (isNetworkOnline(context)) {
-                // Aggiornamento widget mediante task
+                /*// Aggiornamento widget mediante task
                 TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
                 String[] params = {from, to, warningTsd, alertTsd};
-                dataFetcher.execute(params);
+                dataFetcher.execute(params);*/
 
-                //Toast.makeText(context, "From: " + from + "\n" + "To: " + to, Toast.LENGTH_LONG).show();
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                ComponentName thisAppWidget = new ComponentName(context.getPackageName(), TrafficWidget.class.getName());
+                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
+
+                onUpdate(context, appWidgetManager, appWidgetIds);
+
             } else
                 Toast.makeText(context, "Network unavailable!", Toast.LENGTH_LONG).show();
         }
