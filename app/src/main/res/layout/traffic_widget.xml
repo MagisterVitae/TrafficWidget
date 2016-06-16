@@ -24,7 +24,8 @@
         android:textSize="@dimen/abc_text_size_headline_material"
         android:textStyle="bold"
         android:layout_centerInParent="true"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:gravity="center" />
 
     <ImageButton
         android:layout_width="25dp"

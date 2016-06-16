@@ -11,6 +11,7 @@ public class Configuration {
     private String to;
     private String warningTsd;
     private String alertTsd;
+    private String timeReverse;
 
     public Configuration() {
     }
@@ -35,10 +36,15 @@ public class Configuration {
         return alertTsd;
     }
 
+    public String getTimeReverse() {
+        return timeReverse;
+    }
+
     public void fetchConfiguration(Context context, int appWidgetId) {
         this.from = TrafficWidgetConfigureActivity.loadFromPref(context, appWidgetId);
         this.to = TrafficWidgetConfigureActivity.loadToPref(context, appWidgetId);
         this.warningTsd = TrafficWidgetConfigureActivity.loadWarningPref(context, appWidgetId);
         this.alertTsd = TrafficWidgetConfigureActivity.loadAlertPref(context, appWidgetId);
+        this.timeReverse = TrafficWidgetConfigureActivity.loadTimeReversePref(context, appWidgetId);
     }
 }

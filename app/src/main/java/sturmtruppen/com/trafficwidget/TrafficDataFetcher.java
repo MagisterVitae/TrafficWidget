@@ -27,10 +27,11 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
 /**
  * Created by Matteo on 03/06/2016.
  */
-public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryResponse> {
+public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, TrafficQueryResponse> {
 
     private Context context;
     public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
@@ -47,12 +48,12 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
     /**
      * Metodo che esegue le operazioni onerose in un thread separato
      *
-     * @param params
+     * @param dmParams
      * @return
      */
     @Override
-    protected TrafficQueryResponse doInBackground(String[]... params) {
-        return GetDistance(params[0][0], params[0][1], params[0][2], params[0][3]);
+    protected TrafficQueryResponse doInBackground(DistanceMatrixParams... dmParams) {
+        return GetDistance(dmParams);
     }
 
     /**
@@ -118,17 +119,16 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
 
     /**
      * Metodo che interroga le API Google per stabilire il tempo di percorrenza
-     * @param src
-     * @param dest
+     * @param params
      * @return
      */
-    private TrafficQueryResponse GetDistance(String src, String dest, String warningTsd, String alertTsd) {
-
+    private TrafficQueryResponse GetDistance(DistanceMatrixParams[] params) {
+        DistanceMatrixParams param = params[0];
         TrafficQueryResponse queryResponse = new TrafficQueryResponse();
 
         String urlString = Uri.parse("https://maps.googleapis.com/maps/api/distancematrix/json?").buildUpon()
-                .appendQueryParameter("origins", src)
-                .appendQueryParameter("destinations", dest)
+                .appendQueryParameter("origins", param.getFrom())
+                .appendQueryParameter("destinations", param.getTo())
                 .appendQueryParameter("departure_time", "now")
                 .appendQueryParameter("key", APIKEY)
                 .build().toString();
@@ -190,7 +190,7 @@ public class TrafficDataFetcher extends AsyncTask<String[], Void, TrafficQueryRe
             queryResponse.totalSeconds = duration.getInt("value");
             queryResponse.executionTimeStamp = new Date();
             queryResponse.successful = true;
-            queryResponse.btnColor = getBtnColor(duration.getInt("value"), warningTsd, alertTsd);
+            queryResponse.btnColor = getBtnColor(duration.getInt("value"), param.getWarningTsd(), param.getAlertTsd());
 
         } catch (Exception e) {
             e.printStackTrace();

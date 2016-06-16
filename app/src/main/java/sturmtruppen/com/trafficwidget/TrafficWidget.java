@@ -11,6 +11,9 @@ import android.net.NetworkInfo;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Implementation of App Widget functionality.
  * App Widget Configuration implemented in {@link TrafficWidgetConfigureActivity TrafficWidgetConfigureActivity}
@@ -25,13 +28,23 @@ public class TrafficWidget extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
 
+        // Verifica connessione internet
+        if (!isNetworkOnline(context)) {
+            Toast.makeText(context, "Network unavailable!", Toast.LENGTH_LONG).show();
+            views.setTextViewText(R.id.widgettext, "N.A.");
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+            return;
+        }
+
         // Caricamento configurazioni
         Configuration conf = new Configuration(context, appWidgetId);
 
         // Aggiornamento widget mediante task
         TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-        String[] params = {conf.getFrom(), conf.getTo(), conf.getWarningTsd(), conf.getAlertTsd()};
-        dataFetcher.execute(params);
+        DistanceMatrixParams dmParams = new DistanceMatrixParams(conf);
+        if (dmParams.isReversedPath())
+            Toast.makeText(context, "Reversed path", Toast.LENGTH_SHORT).show();
+        dataFetcher.execute(dmParams);
 
         // Sets up the settings button to open the configuration activity
         Intent configIntent = new Intent(context, TrafficWidgetConfigureActivity.class);
@@ -56,10 +69,10 @@ public class TrafficWidget extends AppWidgetProvider {
         int i = 1;
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-
             updateAppWidget(context, appWidgetManager, appWidgetId);
             i++;
         }
+
     }
 
     @Override
@@ -85,20 +98,12 @@ public class TrafficWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         if (intent.getAction().equals(TrafficWidget.ACTION_WIDGET_REFRESH)) {
-            if (isNetworkOnline(context)) {
-                /*// Aggiornamento widget mediante task
-                TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-                String[] params = {from, to, warningTsd, alertTsd};
-                dataFetcher.execute(params);*/
 
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-                ComponentName thisAppWidget = new ComponentName(context.getPackageName(), TrafficWidget.class.getName());
-                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            ComponentName thisAppWidget = new ComponentName(context.getPackageName(), TrafficWidget.class.getName());
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
 
-                onUpdate(context, appWidgetManager, appWidgetIds);
-
-            } else
-                Toast.makeText(context, "Network unavailable!", Toast.LENGTH_LONG).show();
+            onUpdate(context, appWidgetManager, appWidgetIds);
         }
     }
 
@@ -115,7 +120,7 @@ public class TrafficWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private boolean isNetworkOnline(Context context) {
+    private static boolean isNetworkOnline(Context context) {
         ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivity != null) {
             NetworkInfo[] info = connectivity.getAllNetworkInfo();

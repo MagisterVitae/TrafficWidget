@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/highlighted_text_material_light">
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -11,8 +15,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/configure"
-        android:id="@+id/lblTitle"
-        android:layout_weight="0.85" />
+        android:id="@+id/lblTitle" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -40,52 +43,63 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="To:"
-        android:id="@+id/lblTo"
-        android:layout_weight="0.85" />
+        android:id="@+id/lblTo" />
 
     <EditText
         android:id="@+id/txtTo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
-        android:layout_gravity="center_horizontal" />
+        android:inputType="text" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Warning threshold (min)"
-        android:id="@+id/lblWarning"
-        android:layout_weight="0.85" />
+        android:id="@+id/lblWarning" />
 
     <EditText
         android:id="@+id/txtWarning"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.85" />
+        android:inputType="text" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Alert threshold (min)"
-        android:id="@+id/lblAlert"
-        android:layout_weight="0.85" />
+        android:id="@+id/lblAlert" />
 
     <EditText
         android:id="@+id/txtAlert"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
-        android:layout_weight="0.85" />
+        android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Time to path reverse"
+        android:id="@+id/lblPathReverse" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="none"
+        android:ems="10"
+        android:id="@+id/txtTimeReverse"
+        android:editable="false"
+        android:elegantTextHeight="false" />
 
     <Button
         android:id="@+id/add_button"
-        android:layout_width="wrap_content"
+        android:layout_width="198dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/add_widget" />
+        android:text="@string/add_widget"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>
+</ScrollView>
