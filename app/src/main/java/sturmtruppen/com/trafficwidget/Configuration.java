@@ -12,6 +12,7 @@ public class Configuration {
     private String warningTsd;
     private String alertTsd;
     private String timeReverse;
+    private boolean manualRefresh;
 
     public Configuration() {
     }
@@ -38,6 +39,34 @@ public class Configuration {
 
     public String getTimeReverse() {
         return timeReverse;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
+    public void setWarningTsd(String warningTsd) {
+        this.warningTsd = warningTsd;
+    }
+
+    public void setAlertTsd(String alertTsd) {
+        this.alertTsd = alertTsd;
+    }
+
+    public void setTimeReverse(String timeReverse) {
+        this.timeReverse = timeReverse;
+    }
+
+    public boolean isManualRefresh() {
+        return manualRefresh;
+    }
+
+    public void setManualRefresh(boolean manualRefresh) {
+        this.manualRefresh = manualRefresh;
     }
 
     public void fetchConfiguration(Context context, int appWidgetId) {

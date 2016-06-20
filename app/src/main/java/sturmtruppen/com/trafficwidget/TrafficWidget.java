@@ -3,16 +3,12 @@ package sturmtruppen.com.trafficwidget;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.Uri;
 import android.widget.RemoteViews;
-import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Implementation of App Widget functionality.
@@ -22,29 +18,23 @@ public class TrafficWidget extends AppWidgetProvider {
 
     public static String ACTION_WIDGET_CONFIGURE = "ConfigureWidget";
     public static String ACTION_WIDGET_REFRESH = "sturmtruppen.com.trafficwidget.MANUAL_REFRESH";
+    private static boolean manualRefresh = false;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
 
-        // Verifica connessione internet
-        if (!isNetworkOnline(context)) {
-            Toast.makeText(context, "Network unavailable!", Toast.LENGTH_LONG).show();
-            views.setTextViewText(R.id.widgettext, "N.A.");
-            appWidgetManager.updateAppWidget(appWidgetId, views);
-            return;
-        }
-
         // Caricamento configurazioni
         Configuration conf = new Configuration(context, appWidgetId);
+        if (manualRefresh) {
+            conf.setManualRefresh(true);
+            manualRefresh = false;
+        }
 
         // Aggiornamento widget mediante task
         TrafficDataFetcher dataFetcher = new TrafficDataFetcher(context);
-        DistanceMatrixParams dmParams = new DistanceMatrixParams(conf);
-        if (dmParams.isReversedPath())
-            Toast.makeText(context, "Reversed path", Toast.LENGTH_SHORT).show();
-        dataFetcher.execute(dmParams);
+        dataFetcher.execute(conf);
 
         // Sets up the settings button to open the configuration activity
         Intent configIntent = new Intent(context, TrafficWidgetConfigureActivity.class);
@@ -81,6 +71,7 @@ public class TrafficWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             TrafficWidgetConfigureActivity.deleteTitlePref(context, appWidgetId);
         }
+        TrafficWidgetConfigureActivity.deleteAllPrefs(context);
     }
 
     @Override
@@ -102,7 +93,7 @@ public class TrafficWidget extends AppWidgetProvider {
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             ComponentName thisAppWidget = new ComponentName(context.getPackageName(), TrafficWidget.class.getName());
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
-
+            manualRefresh = true;
             onUpdate(context, appWidgetManager, appWidgetIds);
         }
     }
@@ -118,19 +109,6 @@ public class TrafficWidget extends AppWidgetProvider {
         Intent intent = new Intent();
         intent.setAction(ACTION_WIDGET_REFRESH);
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    private static boolean isNetworkOnline(Context context) {
-        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivity != null) {
-            NetworkInfo[] info = connectivity.getAllNetworkInfo();
-            if (info != null)
-                for (int i = 0; i < info.length; i++)
-                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
-                        return true;
-                    }
-        }
-        return false;
     }
 
 

@@ -1,21 +1,16 @@
 package sturmtruppen.com.trafficwidget;
 
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TimePicker;
 
-import junit.framework.Test;
-
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -34,8 +29,8 @@ public class TrafficWidgetConfigureActivity extends Activity {
     EditText mAlert;
     EditText mTimeReverse;
 
-    Calendar dateAndTime = Calendar.getInstance();
-    SimpleDateFormat fmtDateAndTime = new SimpleDateFormat("HH:mm");
+    Calendar calTimeReverse = Calendar.getInstance();
+    SimpleDateFormat fmtCalTimeReverse = new SimpleDateFormat("HH:mm");
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
@@ -47,6 +42,7 @@ public class TrafficWidgetConfigureActivity extends Activity {
             String warningTsd = mWarning.getText().toString();
             String alertTsd = mAlert.getText().toString();
             String timeReverse = mTimeReverse.getText().toString();
+            deleteAllPrefs(context);
             saveDestinationPref(context, mAppWidgetId, from, to);
             saveThresholdPref(context, mAppWidgetId, warningTsd, alertTsd);
             saveTimeReversePref(context, mAppWidgetId, timeReverse);
@@ -68,9 +64,9 @@ public class TrafficWidgetConfigureActivity extends Activity {
     TimePickerDialog.OnTimeSetListener t = new TimePickerDialog.OnTimeSetListener() {
         public void onTimeSet(TimePicker view, int hourOfDay,
                               int minute) {
-            dateAndTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            dateAndTime.set(Calendar.MINUTE, minute);
-            mTimeReverse.setText(fmtDateAndTime.format(dateAndTime.getTime()));
+            calTimeReverse.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            calTimeReverse.set(Calendar.MINUTE, minute);
+            mTimeReverse.setText(fmtCalTimeReverse.format(calTimeReverse.getTime()));
         }
     };
 
@@ -186,6 +182,13 @@ public class TrafficWidgetConfigureActivity extends Activity {
         }
     }
 
+    /**
+     * Metodo per caricare l'orario di inversione del percorso
+     *
+     * @param context
+     * @param appWidgetId
+     * @return
+     */
     static String loadTimeReversePref(Context context, int appWidgetId) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         String timeValue = prefs.getString(PREF_PREFIX_KEY + "timeReverse", null);
@@ -199,6 +202,21 @@ public class TrafficWidgetConfigureActivity extends Activity {
     static void deleteTitlePref(Context context, int appWidgetId) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.remove(PREF_PREFIX_KEY + appWidgetId);
+        prefs.apply();
+    }
+
+    /**
+     * Metodo per cancellare tutte le preferenze
+     *
+     * @param context
+     */
+    static void deleteAllPrefs(Context context) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.remove(PREF_PREFIX_KEY + "from");
+        prefs.remove(PREF_PREFIX_KEY + "to");
+        prefs.remove(PREF_PREFIX_KEY + "warning");
+        prefs.remove(PREF_PREFIX_KEY + "alert");
+        prefs.remove(PREF_PREFIX_KEY + "timeReverse");
         prefs.apply();
     }
 
@@ -223,8 +241,8 @@ public class TrafficWidgetConfigureActivity extends Activity {
             public void onClick(View v) {
                 new TimePickerDialog(TrafficWidgetConfigureActivity.this,
                         t,
-                        dateAndTime.get(Calendar.HOUR_OF_DAY),
-                        dateAndTime.get(Calendar.MINUTE),
+                        calTimeReverse.get(Calendar.HOUR_OF_DAY),
+                        calTimeReverse.get(Calendar.MINUTE),
                         true).show();
             }
         });

@@ -1,16 +1,11 @@
 package sturmtruppen.com.trafficwidget;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -31,14 +26,12 @@ import java.util.Date;
 /**
  * Created by Matteo on 03/06/2016.
  */
-public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, TrafficQueryResponse> {
+public class TrafficDataFetcher extends AsyncTask<Configuration, Void, TrafficQueryResponse> {
 
     private Context context;
     public static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
     private static String APIKEY = "AIzaSyAmp0DJnQmf09u0G2Z4UtbArFIPhu_dLOA";
-    private static int GREEN = Color.GREEN;
-    private static int YELLOW = Color.YELLOW;
-    private static int RED = Color.RED;
+    private static boolean manualRefresh;
 
     // Costruttore per test con time stamp
     public TrafficDataFetcher(Context context) {
@@ -48,12 +41,22 @@ public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, Tr
     /**
      * Metodo che esegue le operazioni onerose in un thread separato
      *
-     * @param dmParams
+     * @param conf
      * @return
      */
     @Override
-    protected TrafficQueryResponse doInBackground(DistanceMatrixParams... dmParams) {
-        return GetDistance(dmParams);
+    protected TrafficQueryResponse doInBackground(Configuration... conf) {
+        // Valuta se il refresh è manuale
+        manualRefresh = conf[0].isManualRefresh();
+
+        // Verifica connessione internet
+        if (!Utils.isNetworkOnline(context)) {
+            TrafficQueryResponse queryResponse = new TrafficQueryResponse();
+            queryResponse.connectivityAvaliable = false;
+            return queryResponse;
+        }
+
+        return GetDistance(conf);
     }
 
     /**
@@ -89,14 +92,26 @@ public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, Tr
     private void manUpdateWidget(Context context, TrafficQueryResponse response) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.traffic_widget);
 
+        // Se non è disponibile la connessione a internet
+        if (!response.connectivityAvaliable) {
+            if (manualRefresh)
+                Toast.makeText(context, "Network unavailable!", Toast.LENGTH_LONG).show();
+            views.setTextViewText(R.id.widgettext, "N.A.");
+            views.setInt(R.id.btnRefresh, "setBackgroundColor", Utils.CYAN);
+            pushWidgetUpdate(context.getApplicationContext(), views);
+            return;
+        }
+
         views.setTextViewText(R.id.widgettext, response.FormattedDuration());
         views.setInt(R.id.btnRefresh, "setBackgroundColor", response.btnColor);
-        if (response.btnColor == RED)
-            sendNotification(context);
+        if (response.btnColor == Utils.RED)
+            Utils.sendNotification(context);
 
-        if (response.successful)
+        if (response.successful && manualRefresh)
             Toast.makeText(context, "ETA: " + response.FormattedDuration(), Toast.LENGTH_SHORT).show();
-        else
+        if (response.reversedPath && manualRefresh)
+            Toast.makeText(context, "Reversed path", Toast.LENGTH_SHORT).show();
+        if (!response.successful && manualRefresh)
             Toast.makeText(context, "Data retrieval failure!", Toast.LENGTH_SHORT).show();
 
         //REMEMBER TO ALWAYS REFRESH YOUR BUTTON CLICK LISTENERS!!!
@@ -119,16 +134,24 @@ public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, Tr
 
     /**
      * Metodo che interroga le API Google per stabilire il tempo di percorrenza
-     * @param params
+     * @param confArray
      * @return
      */
-    private TrafficQueryResponse GetDistance(DistanceMatrixParams[] params) {
-        DistanceMatrixParams param = params[0];
+    private TrafficQueryResponse GetDistance(Configuration[] confArray) {
+        Configuration conf = confArray[0];
         TrafficQueryResponse queryResponse = new TrafficQueryResponse();
 
+        // reverse path evaluation
+        String tempFrom = conf.getFrom();
+        if (Utils.reversePath(conf.getTimeReverse())) {
+            conf.setFrom(conf.getTo());
+            conf.setTo(tempFrom);
+            queryResponse.reversedPath = true;
+        }
+
         String urlString = Uri.parse("https://maps.googleapis.com/maps/api/distancematrix/json?").buildUpon()
-                .appendQueryParameter("origins", param.getFrom())
-                .appendQueryParameter("destinations", param.getTo())
+                .appendQueryParameter("origins", conf.getFrom())
+                .appendQueryParameter("destinations", conf.getTo())
                 .appendQueryParameter("departure_time", "now")
                 .appendQueryParameter("key", APIKEY)
                 .build().toString();
@@ -190,7 +213,7 @@ public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, Tr
             queryResponse.totalSeconds = duration.getInt("value");
             queryResponse.executionTimeStamp = new Date();
             queryResponse.successful = true;
-            queryResponse.btnColor = getBtnColor(duration.getInt("value"), param.getWarningTsd(), param.getAlertTsd());
+            queryResponse.btnColor = Utils.getBtnColor(duration.getInt("value"), conf.getWarningTsd(), conf.getAlertTsd());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -199,39 +222,5 @@ public class TrafficDataFetcher extends AsyncTask<DistanceMatrixParams, Void, Tr
         return queryResponse;
     }
 
-    /**
-     * Metodo per la determinazione del colore del widget
-     *
-     * @param duration
-     * @param warningTsd
-     * @param alertTsd
-     * @return
-     */
-    private int getBtnColor(int duration, String warningTsd, String alertTsd) {
-        int warningSecTsd = Integer.parseInt(warningTsd) * 60;
-        int alertSecTsd = Integer.parseInt(alertTsd) * 60;
 
-        if (duration >= alertSecTsd)
-            return RED;
-        if (duration >= warningSecTsd)
-            return YELLOW;
-        else
-            return GREEN;
-    }
-
-    private void sendNotification(Context context) {
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.ic_madonna)
-                        .setContentTitle("Traffic Widget")
-                        .setContentText("ETA above alert threshold!!!");
-
-        // Sets an ID for the notification
-        int mNotificationId = 001;
-        // Gets an instance of the NotificationManager service
-        NotificationManager mNotifyMgr =
-                (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
-        // Builds the notification and issues it.
-        mNotifyMgr.notify(mNotificationId, mBuilder.build());
-    }
 }

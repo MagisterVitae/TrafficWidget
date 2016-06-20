@@ -17,9 +17,13 @@ public class TrafficQueryResponse {
     public int totalSeconds;
     public Date executionTimeStamp;
     public int btnColor;
+    public boolean reversedPath;
+    public boolean connectivityAvaliable;
 
     TrafficQueryResponse() {
         successful = false;
+        reversedPath = false;
+        connectivityAvaliable = true;
     }
 
     public String FormattedDuration() {
